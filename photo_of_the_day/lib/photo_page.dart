@@ -12,6 +12,11 @@ class PhotoPage extends StatefulWidget {
 }
 
 class _PhotoPageState extends State<PhotoPage> {
+    final List<String> _localPhotos = [
+    'assets/images/photo1.jpg',
+    'assets/images/photo2.jpg',
+    'assets/images/photo3.jpg',
+  ];
   String? _imageUrl;
   bool _isLoading = false;
   String? _errorMessage;
@@ -24,6 +29,7 @@ class _PhotoPageState extends State<PhotoPage> {
       _imageUrl = null;
     });
 
+    /*
     try {
       String url;
       http.Response response;
@@ -36,9 +42,14 @@ class _PhotoPageState extends State<PhotoPage> {
         );
         _imageUrl = data['message'];
       } else {
-        final random = 
-          DateTime.now().millisecondsSinceEpoch;
-        _imageUrl = 'https://picsum.photos/seed/$random/800/800';
+        //использовать стабильный API для пейзажей
+        
+        final random = DateTime.now().millisecondsSinceEpoch;
+        url = 'https://picsum.photos/v2/list?page=$random&limit=1';
+        response = await http.get(Uri.parse(url));
+        List<dynamic> data = jsonDecode(response.body);
+        _imageUrl = data[0]['download_url'];
+        
       }
     } catch (e) {
       _errorMessage = 'Не удалось загрузить фото. \nПроверьте подключение к интернету.';
@@ -47,6 +58,23 @@ class _PhotoPageState extends State<PhotoPage> {
     setState(() {
       _isLoading = false;
     });
+    */
+
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+      final randomIndex =
+          DateTime.now().millisecondsSinceEpoch % 
+          _localPhotos.length;
+      _imageUrl = _localPhotos[randomIndex];
+    } catch (e) {
+      _errorMessage = 'Ошибка загрузки';
+    } 
+    
+    setState(() {
+      _isLoading = false;
+    });
+    
+
   }
 
   @override
@@ -130,25 +158,21 @@ class _PhotoPageState extends State<PhotoPage> {
       );
     }
 
-  if (_imageUrl != null) {
-    return Expanded(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.network(
-          _imageUrl!,  //Image.network для URL
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return const Center(
-              child: Text(
-                'Ошибка загрузки изображения',
-                style: TextStyle(color: Colors.red),
-              ),
-            );
-          },
+    if (_imageUrl != null) {
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              _imageUrl!,
+              fit: BoxFit.cover,
+              width: double.infinity,
+            ),
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
     return const Expanded(
       child: Center(
